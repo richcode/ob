@@ -2,8 +2,11 @@ from flask import Flask, jsonify
 import mysql.connector
 import csv
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 
-app = Flask("VideoAPI")
+app = Flask("Procurements API")
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:theadmin@localhost/obback'
+db = SQLAlchemy(app)
 
 mydb = mysql.connector.connect(
   host="localhost",
@@ -12,15 +15,26 @@ mydb = mysql.connector.connect(
   database="obback"
 )
 
+class Procurements(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tender_no = db.Column(db.String(255))
+    tender_description = db.Column(db.Text())
+    agency = db.Column(db.String(255))
+    award_date = db.Column(db.DateTime())
+    tender_detail_status = db.Column(db.String(100))
+    supplier_name = db.Column(db.String(255))
+    awarded_amt = db.Column(db.Float())
+
+    def __repr__(self):
+        return '<Procurements {}>'.format(self.id)
+
+
 @app.route('/procurements', methods=['GET'])
 def procurements():
-    mycursor = mydb.cursor()
-    mycursor.execute("SELECT * FROM procurements")
-    procurements = mycursor.fetchall()
-
-    return {
-        "items": procurements
-    }
+    procurements = Procurements.query.filter_by(agency='Accounting And Corporate Regulatory Authority')
+    for row in procurements:
+        print(row.tender_no)
+    return 'test'
 
 @app.route('/restore', methods=['POST'])
 def restore():
