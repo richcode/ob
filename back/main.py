@@ -84,11 +84,7 @@ def get_suppliers(page: int,size: int):
     startat=page*size
     mycursor.execute("SELECT DISTINCT(supplier_name) FROM procurements ORDER by supplier_name LIMIT %s, %s", (startat,size))
     suppliers = mycursor.fetchall()
-    return {
-        "items": suppliers,
-        "page": page, 
-        "size": size
-    }
+    return suppliers
 
 @app.get("/agencies")
 def get_agencies(page: int,size: int):
@@ -96,10 +92,6 @@ def get_agencies(page: int,size: int):
     startat=page*size
     mycursor.execute("SELECT DISTINCT(agency) FROM procurements ORDER by agency LIMIT %s, %s", (startat,size))
     agency = mycursor.fetchall()
-    return {
-        "items": agency,
-        "page": page, 
-        "size": size
-    }
+    return agency
 
 add_pagination(app)
