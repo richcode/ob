@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import mysql.connector
 import csv
 from datetime import datetime
@@ -31,9 +31,11 @@ class Procurements(db.Model):
 
 @app.route('/procurements', methods=['GET'])
 def procurements():
-    procurements = Procurements.query.filter_by(agency='Accounting And Corporate Regulatory Authority')
+    page = request.args.get('page', 1, type=int)
+    pageSize = request.args.get('pageSize', 10, type=int)
+    procurements = Procurements.query.filter_by(agency='Accounting And Corporate Regulatory Authority').paginate(page, pageSize, False).items
     for row in procurements:
-        print(row.tender_no)
+        print(row.id)
     return 'test'
 
 @app.route('/restore', methods=['POST'])
