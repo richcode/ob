@@ -36,10 +36,10 @@ def procurements():
     agency = request.args.get('agency','',type=str)
     supplier = request.args.get('supplier','',type=str)
     keyword = request.args.get('keyword','',type=str)
-    procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).filter(Procurements.supplier_name.like('%'+supplier+'%')).filter(Procurements.tender_description.like('%'+keyword+'%')).paginate(page, pageSize, False).items
+    procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).filter(Procurements.supplier_name.like('%'+supplier+'%')).filter(Procurements.tender_description.like('%'+keyword+'%')).paginate(page, pageSize, False)
+    procurementsItem = procurements.items
     data = []
-    for row in procurements:
-        print(row.id)
+    for row in procurementsItem:
         temp = {
             "tenderNo": row.tender_no,
             "tenderDescription": row.tender_description,
@@ -53,6 +53,7 @@ def procurements():
         data.append(temp)
     return {
         "page": page,
+        "totalPages": procurements.pages,
         "data": data
     }
 
