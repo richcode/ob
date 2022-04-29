@@ -8,6 +8,10 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask("Procurements API")
 api = Api(app)
 
+#flask_app = Flask(__name__)
+#app = Api(app = flask_app)
+#name_space = app.namespace('main', description='Main APIs')
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:theadmin@localhost/obback'
 db = SQLAlchemy(app)
 
