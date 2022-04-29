@@ -34,7 +34,9 @@ def procurements():
     page = request.args.get('page', 1, type=int)
     pageSize = request.args.get('pageSize', 10, type=int)
     agency = request.args.get('agency','',type=str)
-    procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).paginate(page, pageSize, False).items
+    supplier = request.args.get('supplier','',type=str)
+    keyword = request.args.get('keyword','',type=str)
+    procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).filter(Procurements.supplier_name.like('%'+supplier+'%')).filter(Procurements.tender_description.like('%'+keyword+'%')).paginate(page, pageSize, False).items
     data = []
     for row in procurements:
         print(row.id)
