@@ -91,6 +91,10 @@ class procurementsDelete(Resource):
 class restore(Resource):
     def post(self):
         mycursor = mydb.cursor()
+        sql = "CREATE TABLE IF NOT EXISTS `procurements` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `tender_no` varchar(20) DEFAULT NULL,`tender_description` text NOT NULL,`agency` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,`award_date` date DEFAULT NULL,`tender_detail_status` varchar(100) DEFAULT NULL,`supplier_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL, `awarded_amt` decimal(12,2) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;"
+        mycursor.execute(sql)
+        
+        mycursor = mydb.cursor()
         sql = "DELETE FROM procurements"
         mycursor.execute(sql)
         mydb.commit()
