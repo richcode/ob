@@ -29,7 +29,7 @@ class Procurements(db.Model):
         return '<Procurements {}>'.format(self.id)
 
 
-@app.route('/procurements', methods=['GET'])
+@app.get('/procurements')
 def procurements():
     page = request.args.get('page', 1, type=int)
     pageSize = request.args.get('pageSize', 10, type=int)
@@ -55,6 +55,22 @@ def procurements():
         "page": page,
         "totalPages": procurements.pages,
         "data": data
+    }
+
+@app.delete("/procurements")
+def delete_procurements():
+    page = request.args.get('page', 1, type=int)
+    pageSize = request.args.get('pageSize', 10, type=int)
+    agency = request.args.get('agency','',type=str)
+    supplier = request.args.get('supplier','',type=str)
+    keyword = request.args.get('keyword','',type=str)
+    procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).filter(Procurements.supplier_name.like('%'+supplier+'%')).filter(Procurements.tender_description.like('%'+keyword+'%')).paginate(page, pageSize, False)
+    procurementsItem = procurements.items
+    for row in procurementsItem:
+        db.session.delete(row)
+    db.session.commit()
+    return {
+        "message":"Procurements sucessfully deleted"
     }
 
 @app.route('/restore', methods=['POST'])
