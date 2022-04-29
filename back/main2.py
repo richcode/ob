@@ -33,10 +33,26 @@ class Procurements(db.Model):
 def procurements():
     page = request.args.get('page', 1, type=int)
     pageSize = request.args.get('pageSize', 10, type=int)
-    procurements = Procurements.query.filter_by(agency='Accounting And Corporate Regulatory Authority').paginate(page, pageSize, False).items
+    agency = request.args.get('agency','',type=str)
+    procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).paginate(page, pageSize, False).items
+    data = []
     for row in procurements:
         print(row.id)
-    return 'test'
+        temp = {
+            "tenderNo": row.tender_no,
+            "tenderDescription": row.tender_description,
+            "agency": row.agency,
+            "awardDate": row.award_date,
+            "tenderDetailStatus": row.tender_detail_status,
+            "supplierName": row.supplier_name,
+            "awardedAmt": row.awarded_amt,
+            "yearAwarded": row.award_date
+        }
+        data.append(temp)
+    return {
+        "page": page,
+        "data": data
+    }
 
 @app.route('/restore', methods=['POST'])
 def restore():
