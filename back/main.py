@@ -5,11 +5,14 @@ import csv
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+import pandas as pd
 
 
 app = Flask("Procurements API")
 CORS(app)
 api = Api(app)
+csv_org = 'data.csv'
+csv_tmp = 'tmp.csv'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:theadmin@localhost/obback'
 db = SQLAlchemy(app)
@@ -89,38 +92,21 @@ class procurementsDelete(Resource):
 @api.route('/restore')
 class restore(Resource):
     def post(self):
-        mycursor = mydb.cursor()
-        sql = "CREATE TABLE IF NOT EXISTS `procurements` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `tender_no` varchar(20) DEFAULT NULL,`tender_description` text NOT NULL,`agency` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,`award_date` date DEFAULT NULL,`tender_detail_status` varchar(100) DEFAULT NULL,`supplier_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL, `awarded_amt` decimal(12,2) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;"
-        mycursor.execute(sql)
-        
-        mycursor = mydb.cursor()
-        sql = "DELETE FROM procurements"
-        mycursor.execute(sql)
-        mydb.commit()
+        try:
+            df = pd.read_csv(csv_org,dtype = {'awarded_amt': 'float64'})
+        except:
+            return "Invalid CSV format/data", 400
 
-        with open('data.csv') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            line_count = 0
-            for row in csv_reader:
-                if line_count == 0:
-                    line_count += 1
-                else:
-                    award_date = datetime.strptime(row[3], '%d/%m/%Y')
-                    award_date = award_date.strftime('%Y-%m-%d')
-                    tender_no = row[0]
-                    tender_description = row[1]
-                    agency = row[2]
-                    tender_detail_status = row[4]
-                    supplier_name = row[5]
-                    awarded_amt = row[6]
+        if (df.empty) :
+            return "CSV is empty", 400
+        for col in df.columns:
+            if (col == 'award_date'):
+                try:
+                        df[col] = pd.to_datetime(df[col])
+                except:
+                    return "Invalid award date format", 400
 
-                    mycursor = mydb.cursor()
-                    sql = "INSERT INTO procurements (tender_no, tender_description, agency, award_date, tender_detail_status, supplier_name, awarded_amt) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                    val = (tender_no, tender_description, agency, award_date, tender_detail_status, supplier_name, awarded_amt)
-                    mycursor.execute(sql, val)
-                    mydb.commit()
-                    line_count += 1
-        
+        df.to_csv(csv_tmp)
         return {
             "message": "Procurements sucessfully restored"
         }
@@ -128,25 +114,38 @@ class restore(Resource):
 @api.route('/suppliers')
 class suppliers(Resource):
     def get(self):
-        mycursor = mydb.cursor()
-        mycursor.execute("SELECT DISTINCT(supplier_name) FROM procurements ORDER by supplier_name")
-        agencies = mycursor.fetchall()
-        row = []
-        for agency in agencies:
-            row.append(agency[0])
-        return jsonify(row)
+        try:
+            df = pd.read_csv(csv_tmp,dtype = {'awarded_amt': 'float64'})
+        except:
+            return "Invalid CSV format/data", 400
+
+        supplier = []
+        for col in df.columns:
+            if (col == 'supplier_name'):
+                for row in df[col]:
+                    if row not in supplier:
+                        supplier.append(row)
+
+        return jsonify(supplier)
 
 
 @api.route('/agencies')
 class agencies(Resource):
     def get(self):
-        mycursor = mydb.cursor()
-        mycursor.execute("SELECT DISTINCT(agency) FROM procurements ORDER by agency")
-        agencies = mycursor.fetchall()
-        row = []
-        for agency in agencies:
-            row.append(agency[0])
-        return jsonify(row)
+        try:
+            df = pd.read_csv(csv_tmp,dtype = {'awarded_amt': 'float64'})
+        except:
+            return "Invalid CSV format/data", 400
+
+        agency = []
+        for col in df.columns:
+            if (col == 'agency'):
+                for row in df[col]:
+                    if row not in agency:
+                        agency.append(row)
+
+        return jsonify(agency)
+        
 
 if __name__ == '__main__':
     app.run()
