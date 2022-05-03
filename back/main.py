@@ -69,36 +69,40 @@ class procurements(Resource):
         agency = request.args.get('agency','',type=str)
         supplier = request.args.get('supplier','',type=str)
         keyword = request.args.get('keyword','',type=str)
-        
+
         data = []
         try:
             df = pd.read_csv(csv_tmp,dtype = {'awarded_amt': 'float64'})
         except:
             return "Invalid CSV format/data", 400
 
+        total_pages = round(len(df) / pageSize)
+        offset = (page - 1) * pageSize
+
         i = 0
         for index, row in df.iterrows():
-            data.append({
-                'tenderNo': row['tender_no.'],
-                'tenderDescription': row['tender_description'],
-                'agency': row['agency'],
-                'awardDate': row['award_date'],
-                'tenderDetailStatus': row['tender_detail_status'],
-                'supplierName': row['supplier_name'],
-                'awardedAmt': row['awarded_amt'],
-                'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
-            })
-            break
-            
-            #item.append({
-              #  "tender_no": df['tender_no']
-            #})
+            if (i==pageSize):
+                break
+            if (index >= offset):
+                data.append({
+                    'index': index,
+                    'i': i,
+                    'offset': offset,
+                    'tenderNo': row['tender_no.'],
+                    'tenderDescription': row['tender_description'],
+                    'agency': row['agency'],
+                    'awardDate': row['award_date'],
+                    'tenderDetailStatus': row['tender_detail_status'],
+                    'supplierName': row['supplier_name'],
+                    'awardedAmt': row['awarded_amt'],
+                    'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
+                })
+                i = i+1
 
         return {
             "page": page,
             "data": data,
-            #"totalPages": procurements.pages,
-            #"data": data
+            "totalPages": total_pages
         }
 
 @api.route('/restore')
