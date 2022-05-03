@@ -85,9 +85,6 @@ class procurements(Resource):
                 break
             if (index >= offset):
                 data.append({
-                    'index': index,
-                    'i': i,
-                    'offset': offset,
                     'tenderNo': row['tender_no.'],
                     'tenderDescription': row['tender_description'],
                     'agency': row['agency'],
