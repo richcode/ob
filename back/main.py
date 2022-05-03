@@ -6,6 +6,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import pandas as pd
+import math
 
 
 app = Flask("Procurements API")
@@ -91,7 +92,7 @@ class procurements(Resource):
         agency = request.args.get('agency','',type=str)
         supplier = request.args.get('supplier','',type=str)
         keyword = request.args.get('keyword','',type=str)
-
+        offset = (page - 1) * pageSize
         data = []
         try:
             df = pd.read_csv(csv_tmp,dtype = {'awarded_amt': 'float64'})
@@ -100,28 +101,40 @@ class procurements(Resource):
 
         total_pages = round(len(df) / pageSize)
         offset = (page - 1) * pageSize
+        
+
+        #df.filter(like='Agri-food and Veterinary Authority', axis=0)
+        #df[df.agency.str.contains('Agri-food')]
+        #df.query('agency == "Agri-food and Veterinary Authority"')
+        if (agency):
+            df.query(f'agency == "{agency}"', inplace = True)
+        if (supplier):
+            df.query(f'supplier_name == "{supplier}"', inplace = True)
+
+        df_count = len(df)
 
         i = 0
         for index, row in df.iterrows():
-            if (i==pageSize):
-                break
-            if (index >= offset):
-                data.append({
-                    'tenderNo': row['tender_no.'],
-                    'tenderDescription': row['tender_description'],
-                    'agency': row['agency'],
-                    'awardDate': row['award_date'],
-                    'tenderDetailStatus': row['tender_detail_status'],
-                    'supplierName': row['supplier_name'],
-                    'awardedAmt': row['awarded_amt'],
-                    'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
-                })
-                i = i+1
+            data.append({
+                'i': i,
+                'index': index,
+                'offset': offset,
+                'tenderNo': row['tender_no.'],
+                'tenderDescription': row['tender_description'],
+                'agency': row['agency'],
+                'awardDate': row['award_date'],
+                'tenderDetailStatus': row['tender_detail_status'],
+                'supplierName': row['supplier_name'],
+                'awardedAmt': row['awarded_amt'],
+                'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
+            })
 
         return {
+            "offset": offset,
             "page": page,
             "data": data,
-            "totalPages": total_pages
+            "df_count": df_count
+            #"totalPages": total_pages
         }
 
 @api.route('/restore')
