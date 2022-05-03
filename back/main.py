@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 from flask_restx import Api, Resource, reqparse
-import mysql.connector
 import csv
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -14,29 +13,6 @@ CORS(app)
 api = Api(app)
 csv_org = 'data.csv'
 csv_tmp = 'tmp.csv'
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:theadmin@localhost/obback'
-db = SQLAlchemy(app)
-
-mydb = mysql.connector.connect(
-  host="localhost",
-  user="admin",
-  password="theadmin",
-  database="obback"
-)
-
-class Procurements(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    tender_no = db.Column(db.String(255))
-    tender_description = db.Column(db.Text())
-    agency = db.Column(db.String(255))
-    award_date = db.Column(db.DateTime())
-    tender_detail_status = db.Column(db.String(100))
-    supplier_name = db.Column(db.String(255))
-    awarded_amt = db.Column(db.Float())
-
-    def __repr__(self):
-        return '<Procurements {}>'.format(self.id)
 
 parser = reqparse.RequestParser()
 parser.add_argument('page', type=str, help='Current Page')
