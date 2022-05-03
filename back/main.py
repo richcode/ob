@@ -45,7 +45,7 @@ parser.add_argument('supplier', type=str, help='Supplier Name')
 parser.add_argument('keyword', type=str, help='Keywords on the Contracts')
 
 @api.route("/procurements")
-class procurementsDelete(Resource):
+class procurements(Resource):
     @api.doc(parser=parser)
     def delete(self):
         page = request.args.get('page', 1, type=int)
@@ -69,24 +69,36 @@ class procurementsDelete(Resource):
         agency = request.args.get('agency','',type=str)
         supplier = request.args.get('supplier','',type=str)
         keyword = request.args.get('keyword','',type=str)
-        procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).filter(Procurements.supplier_name.like('%'+supplier+'%')).filter(Procurements.tender_description.like('%'+keyword+'%')).paginate(page, pageSize, False)
-        procurementsItem = procurements.items
+        
         data = []
-        for row in procurementsItem:
-            temp = {
-                "tenderNo": row.tender_no,
-                "tenderDescription": row.tender_description,
-                "agency": row.agency,
-                "awardDate": row.award_date.strftime('%Y-%m-%d'),
-                "tenderDetailStatus": row.tender_detail_status,
-                "supplierName": row.supplier_name,
-                "awardedAmt": row.awarded_amt
-            }
-            data.append(temp)
+        try:
+            df = pd.read_csv(csv_tmp,dtype = {'awarded_amt': 'float64'})
+        except:
+            return "Invalid CSV format/data", 400
+
+        i = 0
+        for index, row in df.iterrows():
+            data.append({
+                'tenderNo': row['tender_no.'],
+                'tenderDescription': row['tender_description'],
+                'agency': row['agency'],
+                'awardDate': row['award_date'],
+                'tenderDetailStatus': row['tender_detail_status'],
+                'supplierName': row['supplier_name'],
+                'awardedAmt': row['awarded_amt'],
+                'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
+            })
+            break
+            
+            #item.append({
+              #  "tender_no": df['tender_no']
+            #})
+
         return {
             "page": page,
-            "totalPages": procurements.pages,
-            "data": data
+            "data": data,
+            #"totalPages": procurements.pages,
+            #"data": data
         }
 
 @api.route('/restore')
