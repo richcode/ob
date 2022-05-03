@@ -99,42 +99,38 @@ class procurements(Resource):
         except:
             return "Invalid CSV format/data", 400
 
-        total_pages = round(len(df) / pageSize)
-        offset = (page - 1) * pageSize
-        
-
-        #df.filter(like='Agri-food and Veterinary Authority', axis=0)
-        #df[df.agency.str.contains('Agri-food')]
-        #df.query('agency == "Agri-food and Veterinary Authority"')
         if (agency):
             df.query(f'agency == "{agency}"', inplace = True)
         if (supplier):
             df.query(f'supplier_name == "{supplier}"', inplace = True)
 
         df_count = len(df)
-
-        i = 0
+        total_pages = math.ceil(float(len(df)) / pageSize)
+        offset = (page - 1) * pageSize
+        i = 1
         for index, row in df.iterrows():
-            data.append({
-                'i': i,
-                'index': index,
-                'offset': offset,
-                'tenderNo': row['tender_no.'],
-                'tenderDescription': row['tender_description'],
-                'agency': row['agency'],
-                'awardDate': row['award_date'],
-                'tenderDetailStatus': row['tender_detail_status'],
-                'supplierName': row['supplier_name'],
-                'awardedAmt': row['awarded_amt'],
-                'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
-            })
+            if (i <= pageSize):
+                data.append({
+                    'i': i,
+                    'index': index,
+                    'offset': offset,
+                    'tenderNo': row['tender_no.'],
+                    'tenderDescription': row['tender_description'],
+                    'agency': row['agency'],
+                    'awardDate': row['award_date'],
+                    'tenderDetailStatus': row['tender_detail_status'],
+                    'supplierName': row['supplier_name'],
+                    'awardedAmt': row['awarded_amt'],
+                    'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
+                })
+                i = i+1
 
         return {
             "offset": offset,
             "page": page,
             "data": data,
-            "df_count": df_count
-            #"totalPages": total_pages
+            "df_count": df_count,
+            "totalPages": total_pages
         }
 
 @api.route('/restore')
