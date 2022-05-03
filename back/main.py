@@ -53,11 +53,33 @@ class procurements(Resource):
         agency = request.args.get('agency','',type=str)
         supplier = request.args.get('supplier','',type=str)
         keyword = request.args.get('keyword','',type=str)
-        procurements = Procurements.query.filter(Procurements.agency.like('%'+agency+'%')).filter(Procurements.supplier_name.like('%'+supplier+'%')).filter(Procurements.tender_description.like('%'+keyword+'%')).paginate(page, pageSize, False)
-        procurementsItem = procurements.items
-        for row in procurementsItem:
-            db.session.delete(row)
-        db.session.commit()
+
+        data = []
+        try:
+            df = pd.read_csv(csv_tmp,dtype = {'awarded_amt': 'float64'})
+        except:
+            return "Invalid CSV format/data", 400
+
+        total_pages = round(len(df) / pageSize)
+        offset = (page - 1) * pageSize
+
+        i = 0
+        for index, row in df.iterrows():
+            if (i==pageSize):
+                break
+            if (index >= offset):
+                data.append({
+                    'tenderNo': row['tender_no.'],
+                    'tenderDescription': row['tender_description'],
+                    'agency': row['agency'],
+                    'awardDate': row['award_date'],
+                    'tenderDetailStatus': row['tender_detail_status'],
+                    'supplierName': row['supplier_name'],
+                    'awardedAmt': row['awarded_amt'],
+                    'yearAwarded': datetime.strptime(row['award_date'], "%Y-%m-%d").year
+                })
+                i = i+1
+
         return {
             "message":"Procurements sucessfully deleted"
         }
