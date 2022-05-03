@@ -106,14 +106,10 @@ class procurements(Resource):
 
         df_count = len(df)
         total_pages = math.ceil(float(len(df)) / pageSize)
-        offset = (page - 1) * pageSize
-        i = 1
+        i = 0
         for index, row in df.iterrows():
-            if (i <= pageSize):
+            if (i <= 50):
                 data.append({
-                    'i': i,
-                    'index': index,
-                    'offset': offset,
                     'tenderNo': row['tender_no.'],
                     'tenderDescription': row['tender_description'],
                     'agency': row['agency'],
@@ -129,7 +125,6 @@ class procurements(Resource):
             "offset": offset,
             "page": page,
             "data": data,
-            "df_count": df_count,
             "totalPages": total_pages
         }
 
